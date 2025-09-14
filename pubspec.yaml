@@ -36,3 +36,4 @@ flutter:
 
   assets:
     - assets/commande_icon.png
+    - assets/data/default_catalogue.json
