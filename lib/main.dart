@@ -20,6 +20,7 @@ import 'dart:math' as math;
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'services/catalog_service.dart';
 
 // Constante pour la conversion Euro -> MAD
 const double EURO_TO_MAD = 1.00;
@@ -329,42 +330,30 @@ class _CataloguePageState extends State<CataloguePage> {
   }
 
   Future<void> _loadCatalogueFromPreferences() async {
-    String? catalogueJson;
+    setState(() {
+      _isLoading = true;
+    });
 
-    // Essayer d'abord de charger depuis le stockage web
-    if (kIsWeb) {
-      catalogueJson = html.window.localStorage['shared_catalogue_data'];
-    }
-
-    // Si pas trouvé dans le stockage web, essayer le stockage local
-    if (catalogueJson == null) {
-      final prefs = await SharedPreferences.getInstance();
-      catalogueJson = prefs.getString('user_catalogue_data');
-    }
-
-    if (catalogueJson != null) {
-      try {
-        List<dynamic> catalogueData = json.decode(catalogueJson);
-        setState(() {
-          _products =
-              catalogueData.map((data) => Product.fromJson(data)).toList();
-          _filteredProducts = _products;
-        });
-
-        // Si chargé depuis le stockage local, sauvegarder aussi dans le web
-        if (kIsWeb &&
-            !html.window.localStorage.containsKey('shared_catalogue_data')) {
-          html.window.localStorage['shared_catalogue_data'] = catalogueJson;
-        }
-      } catch (e) {
-        print('Error loading catalogue: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du chargement du catalogue'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    try {
+      // Charger le catalogue depuis le service
+      final catalogData = await CatalogService.loadCatalog();
+      
+      setState(() {
+        _products = catalogData.map((data) => Product.fromJson(data)).toList();
+        _filteredProducts = _products;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading catalogue: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors du chargement du catalogue'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
