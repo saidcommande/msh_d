@@ -1,39 +1,103 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_html/html.dart' as html;
+import 'security_service.dart';
 
 class CatalogService {
-  static const String CATALOG_URL = 'https://saidcommande.github.io/msh_d/data/catalog.json';
-  static const String CACHE_KEY = 'cached_catalog';
+  static const String catalogUrl =
+      'https://saidcommande.github.io/msh_d/data/catalog.json';
+  static const String cacheKey = 'cached_catalog';
+  static const String localCatalogKey = 'local_catalog';
 
-  // Charger le catalogue depuis le serveur ou le cache
-  static Future<List<dynamic>> loadCatalog() async {
+  static Future<void> saveLocalCatalog(List<dynamic> products) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(localCatalogKey, json.encode(products));
+  }
+
+  static Future<List<dynamic>> getLocalCatalog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final localData = prefs.getString(localCatalogKey);
+    if (localData != null) {
+      return json.decode(localData) as List<dynamic>;
+    }
+    return [];
+  }
+
+  static Future<List<dynamic>> fetchCatalog() async {
     try {
       // Essayer de charger depuis le serveur
-      final response = await http.get(Uri.parse(CATALOG_URL));
+      // Le catalogue est toujours accessible pour la lecture
+      final response = await http.get(Uri.parse(catalogUrl));
       if (response.statusCode == 200) {
-        final catalog = json.decode(response.body);
-        // Mettre en cache
+        // Cache the data in both SharedPreferences and localStorage
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(CACHE_KEY, response.body);
-        return catalog;
-      }
-    } catch (e) {
-      print('Erreur lors du chargement du catalogue: $e');
-    }
+        await prefs.setString(cacheKey, response.body);
 
-    // En cas d'échec, charger depuis le cache
+        if (kIsWeb) {
+          html.window.localStorage[cacheKey] = response.body;
+        }
+
+        return json.decode(response.body) as List<dynamic>;
+      }
+      // If server request fails, try loading from cache
+      return _loadFromCache();
+    } catch (e) {
+      // In case of error, try loading from cache
+      return _loadFromCache();
+    }
+  }
+
+  static Future<List<dynamic>> _loadFromCache() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final cachedData = prefs.getString(CACHE_KEY);
-      if (cachedData != null) {
-        return json.decode(cachedData);
+      String? cachedData;
+
+      // Try loading from localStorage in web
+      if (kIsWeb) {
+        cachedData = html.window.localStorage[cacheKey];
       }
+
+      // If not found in localStorage or not web, try SharedPreferences
+      if (cachedData == null) {
+        final prefs = await SharedPreferences.getInstance();
+        cachedData = prefs.getString(cacheKey);
+      }
+
+      if (cachedData != null) {
+        return json.decode(cachedData) as List<dynamic>;
+      }
+      return [];
     } catch (e) {
-      print('Erreur lors du chargement du cache: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> updateCatalog(List<dynamic> products) async {
+    // Vérifier l'authentification avant de permettre la mise à jour
+    final isAuth = await SecurityService.isAuthenticated();
+    if (!isAuth) {
+      throw Exception(
+          'Authentification requise pour mettre à jour le catalogue');
     }
 
-    // Si tout échoue, retourner une liste vide
-    return [];
+    try {
+      // Sauvegarder localement
+      await saveLocalCatalog(products);
+
+      // Mettre à jour le cache
+      final jsonData = json.encode(products);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(cacheKey, jsonData);
+
+      if (kIsWeb) {
+        html.window.localStorage[cacheKey] = jsonData;
+      }
+
+      return true;
+    } catch (e) {
+      throw Exception(
+          'Erreur lors de la mise à jour du catalogue: ${e.toString()}');
+    }
   }
 }

@@ -2,9 +2,9 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
@@ -15,26 +15,32 @@ import 'package:universal_html/html.dart' as html;
 import 'package:file_picker/file_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' as math;
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'services/catalog_service.dart';
+import 'services/security_service.dart';
+import 'widgets/login_dialog.dart';
 
 // Constante pour la conversion Euro -> MAD
-const double EURO_TO_MAD = 1.00;
+const double euroToMad = 1.00;
 
 // Fonction pour formater les prix en MAD
 String formatPrice(double price) {
-  return '${(price * EURO_TO_MAD).toStringAsFixed(2)} MAD';
+  return '${(price * euroToMad).toStringAsFixed(2)} MAD';
 }
 
 void main() {
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,6 +55,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MainInterface extends StatefulWidget {
+  const MainInterface({super.key});
+
   static _MainInterfaceState? of(BuildContext context) =>
       context.findAncestorStateOfType<_MainInterfaceState>();
 
@@ -58,11 +66,47 @@ class MainInterface extends StatefulWidget {
 
 class _MainInterfaceState extends State<MainInterface> {
   int _currentIndex = 0;
-  final List<Widget> _pages = [
-    CataloguePage(),
+  final _catalogueKey = GlobalKey<_CataloguePageState>();
+  bool _isLoggedIn = false;
+  late final List<Widget> _pages = [
+    CataloguePage(key: _catalogueKey),
     CommandPage(),
     SettingsPage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final isLoggedIn = await SecurityService.isAuthenticated();
+    setState(() {
+      _isLoggedIn = isLoggedIn;
+    });
+  }
+
+  void _showLoginDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => LoginDialog(
+        onLoginSuccess: () {
+          setState(() {
+            _isLoggedIn = true;
+          });
+        },
+      ),
+    );
+  }
+
+  Future<void> _handleLogout() async {
+    await SecurityService.logout();
+    setState(() {
+      _isLoggedIn = false;
+    });
+  }
 
   void navigateToPage(int index) {
     setState(() {
@@ -110,6 +154,31 @@ class _MainInterfaceState extends State<MainInterface> {
               ),
               onPressed: () => navigateToPage(0),
               tooltip: 'Catalogue',
+            ),
+          ),
+          // Bouton de connexion/déconnexion
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 8),
+            child: IconButton(
+              icon: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _isLoggedIn ? Icons.logout : Icons.login,
+                    color: Colors.white70,
+                    size: 24,
+                  ),
+                  Text(
+                    _isLoggedIn ? 'Déconnexion' : 'Connexion',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+              onPressed: _isLoggedIn ? _handleLogout : _showLoginDialog,
+              tooltip: _isLoggedIn ? 'Déconnexion' : 'Connexion',
             ),
           ),
           // Icône Commande avec badge
@@ -186,12 +255,112 @@ class _MainInterfaceState extends State<MainInterface> {
                   ],
                 ),
               ),
+              PopupMenuItem(
+                value: 'share_catalog',
+                child: Row(
+                  children: [
+                    Icon(Icons.share, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text('Partager le catalogue'),
+                  ],
+                ),
+              ),
             ],
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'load_creator') {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => CreatorCataloguePage(),
                 ));
+              } else if (value == 'share_catalog') {
+                // Vérifier le code de sécurité avant de partager
+                final TextEditingController securityController =
+                    TextEditingController();
+                final bool? confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Code de sécurité'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                              'Cette action mettra à jour le catalogue pour tous les utilisateurs.'),
+                          SizedBox(height: 16),
+                          TextField(
+                            controller: securityController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'Entrez le code de sécurité',
+                              prefixIcon: Icon(Icons.security),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text('Annuler'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (securityController.text == "said@1984") {
+                              Navigator.of(context).pop(true);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Code de sécurité incorrect'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                          child: Text('Confirmer'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                if (confirmed == true) {
+                  try {
+                    // Get the products from the CataloguePage state
+                    final catalogueProducts =
+                        _catalogueKey.currentState?._products ?? [];
+
+                    // Convertir les produits en JSON
+                    final List<Map<String, dynamic>> catalogData =
+                        catalogueProducts.map((p) => p.toJson()).toList();
+
+                    // Mettre à jour le catalogue en utilisant le CatalogService
+                    await CatalogService.updateCatalog(catalogData);
+
+                    // Sauvegarder dans le fichier web/data/catalog.json
+                    await File('web/data/catalog.json')
+                        .writeAsString(json.encode(catalogData));
+
+                    // Commit et push les changements
+                    await Process.run('git', ['add', 'web/data/catalog.json']);
+                    await Process.run(
+                        'git', ['commit', '-m', 'Update shared catalog']);
+                    await Process.run('git', ['push']);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Catalogue partagé avec succès!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    print('Error sharing catalog: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Erreur lors du partage du catalogue'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
               }
             },
           ),
@@ -312,6 +481,8 @@ class Product {
 List<CartItem> globalCart = [];
 
 class CataloguePage extends StatefulWidget {
+  CataloguePage({Key? key}) : super(key: key);
+
   @override
   _CataloguePageState createState() => _CataloguePageState();
 }
@@ -335,9 +506,23 @@ class _CataloguePageState extends State<CataloguePage> {
     });
 
     try {
-      // Charger le catalogue depuis le service
-      final catalogData = await CatalogService.loadCatalog();
-      
+      // Charger le catalogue depuis le serveur
+      List<dynamic> catalogData = await CatalogService.fetchCatalog();
+
+      // Si le catalogue du serveur est vide, essayer de charger depuis les préférences locales
+      if (catalogData.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        final String? catalogJson = prefs.getString('user_catalogue_data');
+
+        if (catalogJson != null) {
+          catalogData = json.decode(catalogJson);
+        }
+      } else {
+        // Si nous avons récupéré des données du serveur, les sauvegarder localement
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_catalogue_data', json.encode(catalogData));
+      }
+
       setState(() {
         _products = catalogData.map((data) => Product.fromJson(data)).toList();
         _filteredProducts = _products;
@@ -416,33 +601,15 @@ class _CataloguePageState extends State<CataloguePage> {
     );
   }
 
-  void _showFullScreenImage(Uint8List imageBytes) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            child: Image.memory(imageBytes, fit: BoxFit.contain),
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _editProduct(int index) async {
     final product = _filteredProducts[index];
     final nameController = TextEditingController(text: product.name);
     final descriptionController =
         TextEditingController(text: product.description);
-    final sizesController = TextEditingController(
-      text: product.sizes.join(', '),
-    );
+    final sizesController =
+        TextEditingController(text: product.sizes.join(', '));
     final pricesController = TextEditingController(
-      text: product.prices.map((p) => p.toString()).join(', '),
-    );
+        text: product.prices.map((p) => p.toString()).join(', '));
 
     await showDialog(
       context: context,
@@ -779,8 +946,8 @@ class _CataloguePageState extends State<CataloguePage> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.vertical(
-                                                  top: Radius.circular(12),
-                                                ),
+                                                        top: Radius.circular(
+                                                            12)),
                                                 image:
                                                     product.imageBytes != null
                                                         ? DecorationImage(
