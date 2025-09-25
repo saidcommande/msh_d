@@ -1,14 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class AuthService {
+  static Future<void> initialize() async {
+    await Firebase.initializeApp();
+  }
+
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static const String AUTH_TOKEN_KEY = 'auth_token';
 
   // Connexion avec email et mot de passe
   static Future<UserCredential?> signIn(String email, String password) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );

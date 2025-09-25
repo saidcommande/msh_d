@@ -8,21 +8,18 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:archive/archive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:file_picker/file_picker.dart';
-import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
-import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:math' as math;
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'services/catalog_service.dart';
+
 import 'services/security_service.dart';
+import 'services/shared_catalog_service.dart';
 import 'widgets/login_dialog.dart';
 
 // Constante pour la conversion Euro -> MAD
@@ -332,25 +329,20 @@ class _MainInterfaceState extends State<MainInterface> {
                     final List<Map<String, dynamic>> catalogData =
                         catalogueProducts.map((p) => p.toJson()).toList();
 
-                    // Mettre à jour le catalogue en utilisant le CatalogService
-                    await CatalogService.updateCatalog(catalogData);
+                    // Mettre à jour le catalogue en utilisant le SharedCatalogService
+                    final success =
+                        await SharedCatalogService.uploadCatalog(catalogData);
 
-                    // Sauvegarder dans le fichier web/data/catalog.json
-                    await File('web/data/catalog.json')
-                        .writeAsString(json.encode(catalogData));
-
-                    // Commit et push les changements
-                    await Process.run('git', ['add', 'web/data/catalog.json']);
-                    await Process.run(
-                        'git', ['commit', '-m', 'Update shared catalog']);
-                    await Process.run('git', ['push']);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Catalogue partagé avec succès!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Catalogue partagé avec succès!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      throw Exception('Échec du partage du catalogue');
+                    }
                   } catch (e) {
                     print('Error sharing catalog: $e');
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -506,22 +498,8 @@ class _CataloguePageState extends State<CataloguePage> {
     });
 
     try {
-      // Charger le catalogue depuis le serveur
-      List<dynamic> catalogData = await CatalogService.fetchCatalog();
-
-      // Si le catalogue du serveur est vide, essayer de charger depuis les préférences locales
-      if (catalogData.isEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        final String? catalogJson = prefs.getString('user_catalogue_data');
-
-        if (catalogJson != null) {
-          catalogData = json.decode(catalogJson);
-        }
-      } else {
-        // Si nous avons récupéré des données du serveur, les sauvegarder localement
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_catalogue_data', json.encode(catalogData));
-      }
+      // Charger le catalogue partagé
+      List<dynamic> catalogData = await SharedCatalogService.getCatalog();
 
       setState(() {
         _products = catalogData.map((data) => Product.fromJson(data)).toList();
@@ -731,9 +709,9 @@ class _CataloguePageState extends State<CataloguePage> {
                   _filteredProducts = _products;
                 });
 
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString('user_catalogue_data',
-                    json.encode(_products.map((p) => p.toJson()).toList()));
+                // Mettre à jour le catalogue partagé
+                final catalogData = _products.map((p) => p.toJson()).toList();
+                await SharedCatalogService.uploadCatalog(catalogData);
 
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
