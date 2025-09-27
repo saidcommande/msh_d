@@ -498,6 +498,8 @@ class _CataloguePageState extends State<CataloguePage> {
     });
 
     try {
+      print('Début du chargement du catalogue...');
+
       // Charger le catalogue partagé
       List<dynamic> catalogData = await SharedCatalogService.getCatalog();
 
@@ -506,11 +508,70 @@ class _CataloguePageState extends State<CataloguePage> {
         _filteredProducts = _products;
         _isLoading = false;
       });
+
+      // Afficher un message de succès ou d'information
+      if (_products.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Catalogue vide - Chargez un catalogue pour commencer'),
+            backgroundColor: Colors.orange,
+            action: SnackBarAction(
+              label: 'Actualiser',
+              onPressed: _refreshCatalog,
+            ),
+          ),
+        );
+      } else {
+        print('Catalogue chargé avec succès: ${_products.length} produits');
+      }
     } catch (e) {
       print('Error loading catalogue: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors du chargement du catalogue'),
+          backgroundColor: Colors.red,
+          action: SnackBarAction(
+            label: 'Réessayer',
+            onPressed: _refreshCatalog,
+          ),
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Nouvelle méthode pour actualiser le catalogue
+  Future<void> _refreshCatalog() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      print('Actualisation forcée du catalogue...');
+
+      // Forcer le rechargement depuis le serveur
+      List<dynamic> catalogData = await SharedCatalogService.forceRefresh();
+
+      setState(() {
+        _products = catalogData.map((data) => Product.fromJson(data)).toList();
+        _filteredProducts = _products;
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Catalogue actualisé (${_products.length} produits)'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      print('Erreur lors de l\'actualisation: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impossible d\'actualiser le catalogue'),
           backgroundColor: Colors.red,
         ),
       );
@@ -813,6 +874,12 @@ class _CataloguePageState extends State<CataloguePage> {
         backgroundColor: Colors.blue[700],
         foregroundColor: Colors.white,
         actions: [
+          // Bouton d'actualisation
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _isLoading ? null : _refreshCatalog,
+            tooltip: 'Actualiser le catalogue',
+          ),
           if (_products.isNotEmpty)
             IconButton(
               icon: Icon(_isEditMode ? Icons.done : Icons.edit),
