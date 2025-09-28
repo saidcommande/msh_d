@@ -74,7 +74,7 @@ List<Map<String, dynamic>> convertCatalog(
       String fileName = imagePath.split('/').last;
       // Construire l'URL GitHub Pages pour l'image
       imageUrl =
-          'https://saidcommande.github.io/msh_d/assets/images/$imageFolder/$fileName';
+          'https://saidcommande.github.io/msh_d/assets/assets/images/$imageFolder/$fileName';
     }
 
     products.add({
