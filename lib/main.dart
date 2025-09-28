@@ -500,6 +500,7 @@ class Product {
   final String id;
   final String name;
   final String description;
+  final String? catalog;
   final double price;
   final List<String> sizes;
   final List<double> prices;
@@ -510,6 +511,7 @@ class Product {
     required this.id,
     required this.name,
     required this.description,
+    this.catalog,
     required this.price,
     required this.sizes,
     required this.prices,
@@ -522,6 +524,7 @@ class Product {
       'id': id,
       'name': name,
       'description': description,
+      'catalog': catalog,
       'price': price,
       'sizes': sizes,
       'prices': prices,
@@ -535,6 +538,7 @@ class Product {
       id: json['id'],
       name: json['name'],
       description: json['description'],
+      catalog: json['catalog'],
       price: (json['price'] is int)
           ? (json['price'] as int).toDouble()
           : (json['price'] is String)
@@ -567,6 +571,14 @@ class _CataloguePageState extends State<CataloguePage> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = false;
   bool _isEditMode = false;
+  String? _selectedCatalog;
+  Map<String, int> _catalogCounts = {};
+  final List<String> _availableCatalogs = [
+    'TOUS',
+    'AKRO',
+    'ANBO',
+    'GOSTASPAIN'
+  ];
 
   @override
   void initState() {
@@ -588,6 +600,8 @@ class _CataloguePageState extends State<CataloguePage> {
       setState(() {
         _products = catalogData.map((data) => Product.fromJson(data)).toList();
         _filteredProducts = _products;
+        _selectedCatalog = 'TOUS';
+        _updateCatalogCounts();
         _isLoading = false;
       });
 
@@ -666,10 +680,47 @@ class _CataloguePageState extends State<CataloguePage> {
   void _filterProducts(String query) {
     setState(() {
       _filteredProducts = _products.where((product) {
-        return product.name.toLowerCase().contains(query.toLowerCase()) ||
+        // Filtrer par catalogue si un catalogue spécifique est sélectionné
+        bool catalogMatch = _selectedCatalog == null ||
+            _selectedCatalog == 'TOUS' ||
+            product.catalog == _selectedCatalog;
+
+        // Filtrer par texte de recherche
+        bool textMatch = query.isEmpty ||
+            product.name.toLowerCase().contains(query.toLowerCase()) ||
             product.description.toLowerCase().contains(query.toLowerCase());
+
+        return catalogMatch && textMatch;
       }).toList();
     });
+  }
+
+  void _updateCatalogCounts() {
+    _catalogCounts.clear();
+    for (var product in _products) {
+      final catalog = product.catalog ?? 'INCONNU';
+      _catalogCounts[catalog] = (_catalogCounts[catalog] ?? 0) + 1;
+    }
+  }
+
+  void _selectCatalog(String? catalog) {
+    setState(() {
+      _selectedCatalog = catalog;
+    });
+    _filterProducts(_searchController.text);
+  }
+
+  Color _getCatalogColor(String catalog) {
+    switch (catalog.toUpperCase()) {
+      case 'AKRO':
+        return Colors.blue.shade600;
+      case 'ANBO':
+        return Colors.orange.shade600;
+      case 'GOSTASPAIN':
+        return Colors.green.shade600;
+      default:
+        return Colors.grey.shade600;
+    }
   }
 
   void _showSecurityDialog() {
@@ -1061,6 +1112,46 @@ class _CataloguePageState extends State<CataloguePage> {
                   onChanged: _filterProducts,
                 ),
               ),
+              // Sélecteur de catalogue moderne
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _availableCatalogs.map((catalog) {
+                      final isSelected = _selectedCatalog == catalog;
+                      final count = catalog == 'TOUS'
+                          ? _products.length
+                          : _catalogCounts[catalog] ?? 0;
+
+                      return Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(
+                            '$catalog ($count)',
+                            style: TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? theme.colorScheme.onPrimary
+                                  : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (_) => _selectCatalog(catalog),
+                          backgroundColor: theme.colorScheme.surfaceVariant,
+                          selectedColor: theme.colorScheme.primary,
+                          checkmarkColor: theme.colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
               // Compteur de produits
               Container(
                 padding:
@@ -1353,6 +1444,38 @@ class _CataloguePageState extends State<CataloguePage> {
                                           ),
                                         ],
                                       ),
+                                      // Badge du catalogue en haut à gauche
+                                      if (product.catalog != null)
+                                        Positioned(
+                                          top: 8,
+                                          left: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: _getCatalogColor(
+                                                  product.catalog!),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.2),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              product.catalog!,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       if (_isEditMode)
                                         Positioned(
                                           top: 8,
