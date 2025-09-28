@@ -10,6 +10,12 @@ void main() {
   allProducts.addAll(akroProducts);
   print('✅ AKRO: ${akroProducts.length} produits ajoutés');
 
+  // Convertir AKRO2
+  print('🟣 Conversion du catalogue AKRO2...');
+  final akro2Products = convertCatalog('data/AKRO2.json', 'AKRO2', 'akro2');
+  allProducts.addAll(akro2Products);
+  print('✅ AKRO2: ${akro2Products.length} produits ajoutés');
+
   // Convertir ANBO
   print('🟡 Conversion du catalogue ANBO...');
   final anboProducts =
@@ -29,6 +35,7 @@ void main() {
     'products': allProducts,
     'catalogs': {
       'AKRO': akroProducts.length,
+      'AKRO2': akro2Products.length,
       'ANBO': anboProducts.length,
       'GOSTASPAIN': gostaspainProducts.length,
       'total': allProducts.length
