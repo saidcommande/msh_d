@@ -1,3 +1,50 @@
 {
-  "products": []
+  "products": [
+    {
+      "id": "prod1",
+      "name": "T-shirt Premium",
+      "description": "T-shirt en coton bio de haute qualité",
+      "price": 150.0,
+      "sizes": ["S", "M", "L", "XL"],
+      "prices": [150.0, 150.0, 160.0, 170.0],
+      "imageBytes": null
+    },
+    {
+      "id": "prod2",
+      "name": "Jean Classique",
+      "description": "Jean denim bleu classique coupe droite",
+      "price": 250.0,
+      "sizes": ["28", "30", "32", "34", "36"],
+      "prices": [250.0, 250.0, 250.0, 260.0, 260.0],
+      "imageBytes": null
+    },
+    {
+      "id": "prod3",
+      "name": "Baskets Sport",
+      "description": "Chaussures de sport confortables et stylées",
+      "price": 350.0,
+      "sizes": ["39", "40", "41", "42", "43", "44"],
+      "prices": [350.0, 350.0, 350.0, 350.0, 360.0, 360.0],
+      "imageBytes": null
+    },
+    {
+      "id": "prod4",
+      "name": "Veste d'Hiver",
+      "description": "Veste chaude et imperméable pour l'hiver",
+      "price": 450.0,
+      "sizes": ["S", "M", "L", "XL"],
+      "prices": [450.0, 450.0, 470.0, 480.0],
+      "imageBytes": null
+    },
+    {
+      "id": "prod5",
+      "name": "Chemise Business",
+      "description": "Chemise élégante pour le bureau",
+      "price": 180.0,
+      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "prices": [180.0, 180.0, 190.0, 200.0, 210.0],
+      "imageBytes": null
+    }
+  ],
+  "lastUpdated": "2025-09-28T10:00:00.000Z"
 }
