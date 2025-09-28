@@ -169,35 +169,6 @@ class _MainInterfaceState extends State<MainInterface> {
         ),
         backgroundColor: Colors.blue[700],
         actions: [
-          // Icône Catalogue avec badge
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: _currentIndex == 0 ? Colors.white24 : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: IconButton(
-              icon: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.list_alt,
-                    color: _currentIndex == 0 ? Colors.white : Colors.white70,
-                    size: 24,
-                  ),
-                  Text(
-                    'Catalogue',
-                    style: TextStyle(
-                      color: _currentIndex == 0 ? Colors.white : Colors.white70,
-                      fontSize: 10,
-                    ),
-                  ),
-                ],
-              ),
-              onPressed: () => navigateToPage(0),
-              tooltip: 'Catalogue',
-            ),
-          ),
           // Bouton de connexion/déconnexion
           Container(
             margin: EdgeInsets.symmetric(horizontal: 8),
@@ -221,67 +192,6 @@ class _MainInterfaceState extends State<MainInterface> {
               ),
               onPressed: _isLoggedIn ? _handleLogout : _showLoginDialog,
               tooltip: _isLoggedIn ? 'Déconnexion' : 'Connexion',
-            ),
-          ),
-          // Icône Commande avec badge
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: _currentIndex == 1 ? Colors.white24 : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: IconButton(
-              icon: Stack(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.shopping_cart,
-                        color:
-                            _currentIndex == 1 ? Colors.white : Colors.white70,
-                        size: 24,
-                      ),
-                      Text(
-                        'Commande',
-                        style: TextStyle(
-                          color: _currentIndex == 1
-                              ? Colors.white
-                              : Colors.white70,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (globalCart.isNotEmpty)
-                    Positioned(
-                      right: -2,
-                      top: -2,
-                      child: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        constraints: BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          '${globalCart.length}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              onPressed: () => navigateToPage(1),
-              tooltip: 'Commande',
             ),
           ),
           PopupMenuButton<String>(
