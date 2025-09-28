@@ -4,29 +4,29 @@ import 'dart:convert';
 void main() {
   final List<Map<String, dynamic>> allProducts = [];
 
-  // Convertir AKRO
+  // Convertir AKRO (version mise à jour)
   print('🔵 Conversion du catalogue AKRO...');
-  final akroProducts = convertCatalog('catalogue/AKRO.json', 'AKRO', 'akro');
+  final akroProducts = convertCatalog('catalogue/AKRO_new.json', 'AKRO', 'akro');
   allProducts.addAll(akroProducts);
   print('✅ AKRO: ${akroProducts.length} produits ajoutés');
 
-  // Convertir AKRO2
+  // Convertir AKRO2 (si disponible)
   print('🟣 Conversion du catalogue AKRO2...');
   final akro2Products = convertCatalog('data/AKRO2.json', 'AKRO2', 'akro2');
   allProducts.addAll(akro2Products);
   print('✅ AKRO2: ${akro2Products.length} produits ajoutés');
 
-  // Convertir ANBO
+  // Convertir ANBO (version mise à jour)
   print('🟡 Conversion du catalogue ANBO...');
   final anboProducts =
-      convertCatalog('catalogue/ANBO_images.json', 'ANBO', 'anbo');
+      convertCatalog('catalogue/ANBO_new.json', 'ANBO', 'anbo');
   allProducts.addAll(anboProducts);
   print('✅ ANBO: ${anboProducts.length} produits ajoutés');
 
-  // Convertir GOSTASPAIN
+  // Convertir GOSTASPAIN (version mise à jour)
   print('🟢 Conversion du catalogue GOSTASPAIN...');
   final gostaspainProducts = convertCatalog(
-      'catalogue/GOSTASPAIN_images.json', 'GOSTASPAIN', 'gostaspain');
+      'catalogue/GOSTASPAIN_new.json', 'GOSTASPAIN', 'gostaspain');
   allProducts.addAll(gostaspainProducts);
   print('✅ GOSTASPAIN: ${gostaspainProducts.length} produits ajoutés');
 

@@ -1,0 +1,96 @@
+{
+  "name": "ANBO",
+  "products": [
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752851610.jpeg",
+      "name": "4ENSEMBLES2016PATINES",
+      "sizes": ["Taille unique"],
+      "prices": [71.5],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752851746.jpeg",
+      "name": "2ENSEMBLES20171/PATINE",
+      "sizes": ["Taille unique"],
+      "prices": [93.6],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752851899.jpeg",
+      "name": "S/N 3470",
+      "sizes": ["Taille unique"],
+      "prices": [201.5],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752851983.jpeg",
+      "name": "S/N9046*1",
+      "sizes": ["Taille unique"],
+      "prices": [114.4],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752852057.jpeg",
+      "name": "CANON2200T ZAMAK",
+      "sizes": ["Taille unique"],
+      "prices": [42.0],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752852126.jpeg",
+      "name": "CLASSICAL-50",
+      "sizes": ["Taille unique"],
+      "prices": [67.6],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752852194.jpeg",
+      "name": "S/NSL 500 S/N 2200T",
+      "sizes": ["Taille unique"],
+      "prices": [117.0],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752852268.jpeg",
+      "name": "POP-55",
+      "sizes": ["Taille unique"],
+      "prices": [66.0],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752852468.jpeg",
+      "name": "POP-80",
+      "sizes": ["Taille unique"],
+      "prices": [94.0],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    },
+    {
+      "image_path": "/data/user/0/com.example.pdf_commande_app/app_flutter/Cataloguemsh_images/prod_1752852517.jpeg",
+      "name": "GACHDROGASA",
+      "sizes": ["Taille unique"],
+      "prices": [127.4],
+      "page": -1,
+      "img_index": -1,
+      "raw_text": "Produit ajouté manuellement"
+    }
+  ],
+  "created_at": "2025-07-18 16:29:45"
+}
