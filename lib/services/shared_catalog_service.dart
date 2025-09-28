@@ -6,7 +6,7 @@ import 'package:universal_html/html.dart' as html;
 
 class SharedCatalogService {
   static const String CATALOG_URL =
-      'https://saidcommande.github.io/msh_d/data/catalog.json';
+      'https://saidcommande.github.io/msh_d/docs/data/catalog.json';
   static const String SHARED_CATALOG_KEY = 'shared_catalog';
   static const String LAST_SYNC_KEY = 'last_catalog_sync';
 

@@ -41,10 +41,55 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PDF Commande',
+      title: 'PDF Commande Pro',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1976D2),
+          brightness: Brightness.light,
+        ),
+        cardTheme: const CardThemeData(
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16))),
+          shadowColor: Colors.black26,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            elevation: 2,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade50,
+        ),
+        appBarTheme: const AppBarTheme(
+          centerTitle: false,
+          elevation: 0,
+          scrolledUnderElevation: 2,
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          elevation: 8,
+          selectedItemColor: const Color(0xFF1976D2),
+          unselectedItemColor: Colors.grey.shade600,
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+        ),
       ),
       home: MainInterface(),
     );
@@ -367,16 +412,48 @@ class _MainInterfaceState extends State<MainInterface> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.blue[700],
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Colors.grey.shade600,
         elevation: 8,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
+            icon: Icon(Icons.inventory_2_outlined),
+            activeIcon: Icon(Icons.inventory_2),
             label: 'Catalogue',
           ),
           BottomNavigationBarItem(
             icon: Stack(
+              children: [
+                Icon(Icons.shopping_cart_outlined),
+                if (globalCart.isNotEmpty)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.error,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        '${globalCart.length}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onError,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            activeIcon: Stack(
               children: [
                 Icon(Icons.shopping_cart),
                 if (globalCart.isNotEmpty)
@@ -384,19 +461,19 @@ class _MainInterfaceState extends State<MainInterface> {
                     right: -2,
                     top: -2,
                     child: Container(
-                      padding: EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: Theme.of(context).colorScheme.error,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      constraints: BoxConstraints(
+                      constraints: const BoxConstraints(
                         minWidth: 16,
                         minHeight: 16,
                       ),
                       child: Text(
                         '${globalCart.length}',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onError,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -409,7 +486,8 @@ class _MainInterfaceState extends State<MainInterface> {
             label: 'Commande',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
+            icon: Icon(Icons.settings_outlined),
+            activeIcon: Icon(Icons.settings),
             label: 'Paramètres',
           ),
         ],
@@ -790,12 +868,13 @@ class _CataloguePageState extends State<CataloguePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_outlined),
           onPressed: () {
-            // Utiliser la nouvelle méthode pour naviguer vers la page Commande
             MainInterface.of(context)?.navigateToPage(1);
             if (context.findAncestorStateOfType<_MainInterfaceState>() !=
                 null) {
@@ -811,46 +890,60 @@ class _CataloguePageState extends State<CataloguePage> {
         ),
         title: Row(
           children: [
-            Text('Catalogue'),
-            SizedBox(width: 16),
-            IconButton(
-              icon: Icon(Icons.upload_file),
-              tooltip: 'Charger un nouveau catalogue',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => CreatorCataloguePage()),
-                );
-              },
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.inventory_2_outlined,
+                color: theme.colorScheme.onPrimaryContainer,
+                size: 20,
+              ),
             ),
-            SizedBox(width: 16),
-            IconButton(
+            const SizedBox(width: 12),
+            Text(
+              'Catalogue',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: theme.colorScheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 2,
+        actions: [
+          // Badge panier moderne
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton.filledTonal(
               icon: Stack(
                 children: [
-                  Icon(Icons.shopping_cart, color: Colors.white, size: 28),
+                  const Icon(Icons.shopping_cart_outlined, size: 24),
                   if (globalCart.isNotEmpty)
                     Positioned(
-                      right: -4,
-                      top: -4,
+                      right: -2,
+                      top: -2,
                       child: Container(
-                        padding: EdgeInsets.all(4),
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: theme.colorScheme.error,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: Colors.white,
+                            color: theme.colorScheme.surface,
                             width: 1.5,
                           ),
                         ),
-                        constraints: BoxConstraints(
+                        constraints: const BoxConstraints(
                           minWidth: 18,
                           minHeight: 18,
                         ),
                         child: Text(
                           '${globalCart.length}',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: theme.colorScheme.onError,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -861,78 +954,183 @@ class _CataloguePageState extends State<CataloguePage> {
                 ],
               ),
               onPressed: () {
-                // Navigation directe vers la page de commande
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => CommandPage(),
-                  ),
+                  MaterialPageRoute(builder: (context) => CommandPage()),
                 );
               },
+              tooltip: 'Voir le panier',
             ),
-          ],
-        ),
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
-        actions: [
-          // Bouton d'actualisation
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _isLoading ? null : _refreshCatalog,
-            tooltip: 'Actualiser le catalogue',
           ),
-          if (_products.isNotEmpty)
-            IconButton(
-              icon: Icon(_isEditMode ? Icons.done : Icons.edit),
-              onPressed: () {
-                _showSecurityDialog();
+          // Bouton actualiser moderne
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton.outlined(
+              icon: const Icon(Icons.refresh_outlined),
+              onPressed: _isLoading ? null : _refreshCatalog,
+              tooltip: 'Actualiser le catalogue',
+            ),
+          ),
+          // Menu moderne
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_outlined),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'upload',
+                  child: Row(
+                    children: [
+                      Icon(Icons.upload_file_outlined,
+                          color: theme.colorScheme.primary, size: 20),
+                      const SizedBox(width: 12),
+                      const Text('Charger catalogue'),
+                    ],
+                  ),
+                ),
+                if (_products.isNotEmpty)
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(
+                            _isEditMode
+                                ? Icons.done_outlined
+                                : Icons.edit_outlined,
+                            color: theme.colorScheme.primary,
+                            size: 20),
+                        const SizedBox(width: 12),
+                        Text(_isEditMode ? 'Terminer' : 'Modifier'),
+                      ],
+                    ),
+                  ),
+              ],
+              onSelected: (value) {
+                if (value == 'upload') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CreatorCataloguePage()),
+                  );
+                } else if (value == 'edit') {
+                  _showSecurityDialog();
+                }
               },
             ),
+          ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SizedBox(height: 16),
             if (_products.isNotEmpty) ...[
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Rechercher articles',
-                  prefixIcon: Icon(Icons.search, color: Colors.blue),
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
+              // Barre de recherche moderne
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'Rechercher des produits',
+                    hintText: 'Tapez pour rechercher...',
+                    prefixIcon: Icon(
+                      Icons.search_outlined,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_outlined),
+                            onPressed: () {
+                              _searchController.clear();
+                              _filterProducts('');
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor:
+                        theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                  ),
+                  onChanged: _filterProducts,
+                ),
+              ),
+              // Compteur de produits
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${_filteredProducts.length} produit${_filteredProducts.length > 1 ? 's' : ''} trouvé${_filteredProducts.length > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                onChanged: _filterProducts,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
             _isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Chargement du catalogue...',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 : Expanded(
                     child: _products.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.inventory_2,
-                                    size: 64, color: Colors.grey),
-                                SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.errorContainer,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Icon(
+                                    Icons.inventory_2_outlined,
+                                    size: 64,
+                                    color: theme.colorScheme.onErrorContainer,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
                                 Text(
                                   'Aucun catalogue chargé',
-                                  style: TextStyle(
-                                      fontSize: 18, color: Colors.grey),
+                                  style:
+                                      theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Text(
                                   'Le créateur doit charger un catalogue',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.grey),
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
-                                SizedBox(height: 20),
-                                ElevatedButton.icon(
+                                const SizedBox(height: 32),
+                                FilledButton.icon(
                                   onPressed: () {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
@@ -941,12 +1139,14 @@ class _CataloguePageState extends State<CataloguePage> {
                                       ),
                                     );
                                   },
-                                  icon: Icon(Icons.upload),
-                                  label: Text('Charger un catalogue'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[700],
-                                    foregroundColor: Colors.white,
-                                  ),
+                                  icon: const Icon(Icons.upload_file_outlined),
+                                  label: const Text('Charger un catalogue'),
+                                ),
+                                const SizedBox(height: 16),
+                                OutlinedButton.icon(
+                                  onPressed: _refreshCatalog,
+                                  icon: const Icon(Icons.refresh_outlined),
+                                  label: const Text('Actualiser'),
                                 ),
                               ],
                             ),
