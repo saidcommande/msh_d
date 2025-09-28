@@ -6,7 +6,8 @@ void main() {
 
   // Convertir AKRO (version mise à jour)
   print('🔵 Conversion du catalogue AKRO...');
-  final akroProducts = convertCatalog('catalogue/AKRO_new.json', 'AKRO', 'akro');
+  final akroProducts =
+      convertCatalog('catalogue/AKRO_new.json', 'AKRO', 'akro');
   allProducts.addAll(akroProducts);
   print('✅ AKRO: ${akroProducts.length} produits ajoutés');
 
@@ -79,6 +80,10 @@ List<Map<String, dynamic>> convertCatalog(
     if (imagePath != null) {
       // Extraire le nom du fichier (ex: prod_1752440345.png)
       String fileName = imagePath.split('/').last;
+      // Si le chemin contient des backslashes Windows, les gérer aussi
+      if (fileName.contains('\\')) {
+        fileName = fileName.split('\\').last;
+      }
       // Construire l'URL GitHub Pages pour l'image
       imageUrl =
           'https://saidcommande.github.io/msh_d/assets/assets/images/$imageFolder/$fileName';
@@ -86,7 +91,7 @@ List<Map<String, dynamic>> convertCatalog(
 
     products.add({
       'id': '${catalogName.toLowerCase()}_${i + 1}',
-      'name': product['name'],
+      'name': _cleanProductName(product['name']),
       'description': description,
       'catalog': catalogName,
       'price': (product['prices'] as List).isNotEmpty
@@ -126,4 +131,22 @@ String _generateDescription(String name, String catalogName) {
   } else {
     return '$baseDescription Conception robuste et fiable pour une utilisation intensive.';
   }
+}
+
+String _cleanProductName(String name) {
+  // Nettoyer le nom du produit
+  String cleanName = name.trim();
+
+  // Remplacer les caractères spéciaux et espaces multiples
+  cleanName = cleanName.replaceAll(RegExp(r'\s+'), ' ');
+
+  // Ajouter des espaces dans les noms collés (ex: "2ENSEMBLES20171/PATINE" -> "2 ENSEMBLES 2017 1/PATINE")
+  cleanName = cleanName.replaceAllMapped(
+      RegExp(r'(\d)([A-Z])'), (match) => '${match.group(1)} ${match.group(2)}');
+  cleanName = cleanName.replaceAllMapped(RegExp(r'([a-z])([A-Z])'),
+      (match) => '${match.group(1)} ${match.group(2)}');
+  cleanName = cleanName.replaceAllMapped(
+      RegExp(r'([A-Z])(\d)'), (match) => '${match.group(1)} ${match.group(2)}');
+
+  return cleanName;
 }
