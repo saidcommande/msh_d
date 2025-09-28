@@ -504,6 +504,7 @@ class Product {
   final List<String> sizes;
   final List<double> prices;
   final Uint8List? imageBytes;
+  final String? imageUrl;
 
   Product({
     required this.id,
@@ -513,6 +514,7 @@ class Product {
     required this.sizes,
     required this.prices,
     this.imageBytes,
+    this.imageUrl,
   });
 
   Map<String, dynamic> toJson() {
@@ -524,6 +526,7 @@ class Product {
       'sizes': sizes,
       'prices': prices,
       'imageBytes': imageBytes != null ? base64Encode(imageBytes!) : null,
+      'imageUrl': imageUrl,
     };
   }
 
@@ -543,6 +546,7 @@ class Product {
           : (p is String ? double.tryParse(p) ?? 0.0 : p))),
       imageBytes:
           json['imageBytes'] != null ? base64Decode(json['imageBytes']) : null,
+      imageUrl: json['imageUrl'],
     );
   }
 }
@@ -1193,26 +1197,119 @@ class _CataloguePageState extends State<CataloguePage> {
                                                     BorderRadius.vertical(
                                                         top: Radius.circular(
                                                             12)),
-                                                image:
-                                                    product.imageBytes != null
-                                                        ? DecorationImage(
-                                                            image: MemoryImage(
-                                                                product
-                                                                    .imageBytes!),
-                                                            fit: BoxFit.cover,
-                                                          )
-                                                        : null,
-                                                color: Colors.blue.shade100,
+                                                color: Colors.blue.shade50,
                                               ),
-                                              child: product.imageBytes == null
-                                                  ? Center(
-                                                      child: Icon(
-                                                        Icons.shopping_bag,
-                                                        size: 50,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    )
-                                                  : null,
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                        top: Radius.circular(
+                                                            12)),
+                                                child: product.imageBytes !=
+                                                        null
+                                                    ? Image.memory(
+                                                        product.imageBytes!,
+                                                        fit: BoxFit.cover,
+                                                        width: double.infinity,
+                                                        height: double.infinity,
+                                                      )
+                                                    : product.imageUrl != null
+                                                        ? Image.network(
+                                                            product.imageUrl!,
+                                                            fit: BoxFit.cover,
+                                                            width:
+                                                                double.infinity,
+                                                            height:
+                                                                double.infinity,
+                                                            loadingBuilder:
+                                                                (context, child,
+                                                                    loadingProgress) {
+                                                              if (loadingProgress ==
+                                                                  null)
+                                                                return child;
+                                                              return Center(
+                                                                child:
+                                                                    CircularProgressIndicator(
+                                                                  value: loadingProgress
+                                                                              .expectedTotalBytes !=
+                                                                          null
+                                                                      ? loadingProgress
+                                                                              .cumulativeBytesLoaded /
+                                                                          loadingProgress
+                                                                              .expectedTotalBytes!
+                                                                      : null,
+                                                                ),
+                                                              );
+                                                            },
+                                                            errorBuilder:
+                                                                (context, error,
+                                                                    stackTrace) {
+                                                              return Center(
+                                                                child: Column(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    Icon(
+                                                                      Icons
+                                                                          .image_not_supported_outlined,
+                                                                      size: 32,
+                                                                      color: Colors
+                                                                          .grey
+                                                                          .shade400,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            4),
+                                                                    Text(
+                                                                      'Image indisponible',
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            10,
+                                                                        color: Colors
+                                                                            .grey
+                                                                            .shade600,
+                                                                      ),
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              );
+                                                            },
+                                                          )
+                                                        : Center(
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                Icon(
+                                                                  Icons
+                                                                      .inventory_2_outlined,
+                                                                  size: 40,
+                                                                  color: Colors
+                                                                      .blue
+                                                                      .shade300,
+                                                                ),
+                                                                const SizedBox(
+                                                                    height: 4),
+                                                                Text(
+                                                                  'Produit',
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontSize:
+                                                                        10,
+                                                                    color: Colors
+                                                                        .blue
+                                                                        .shade600,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                              ),
                                             ),
                                           ),
                                           Padding(

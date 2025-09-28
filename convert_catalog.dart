@@ -17,6 +17,18 @@ void main() {
     // Créer une description basée sur le nom
     String description = _generateDescription(product['name']);
 
+    // Extraire le nom du fichier image depuis le chemin original
+    String? imagePath = product['image_path'];
+    String? imageUrl;
+
+    if (imagePath != null) {
+      // Extraire le nom du fichier (ex: prod_1752440345.png)
+      String fileName = imagePath.split('/').last;
+      // Construire l'URL GitHub Pages pour l'image
+      imageUrl =
+          'https://saidcommande.github.io/msh_d/docs/assets/images/gotaspain/$fileName';
+    }
+
     products.add({
       'id': 'gotaspain_${i + 1}',
       'name': product['name'],
@@ -27,7 +39,8 @@ void main() {
       'sizes': List<String>.from(product['sizes']),
       'prices': List<double>.from(
           (product['prices'] as List).map((p) => (p as num).toDouble())),
-      'imageBytes': null
+      'imageBytes': null,
+      'imageUrl': imageUrl
     });
   }
 
