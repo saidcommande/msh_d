@@ -483,10 +483,7 @@ class _CataloguePageState extends State<CataloguePage> {
   bool _isEditMode = false;
   String? _selectedCatalog;
   Map<String, int> _catalogCounts = {};
-  final List<String> _availableCatalogs = [
-    'TOUS',
-    'AKASYA-MAX'
-  ];
+  final List<String> _availableCatalogs = ['TOUS', 'AKASYA-MAX'];
 
   @override
   void initState() {

@@ -6,7 +6,8 @@ void main() {
 
   // Convertir AKASYA-MAX (catalogue principal)
   print('� Conversion du catalogue AKASYA-MAX...');
-  final akasyaMaxProducts = convertCatalog('catalogue/akasya-max/akasya-max.json', 'AKASYA-MAX', 'akasya-max');
+  final akasyaMaxProducts = convertCatalog(
+      'catalogue/akasya-max/akasya-max.json', 'AKASYA-MAX', 'akasya-max');
   allProducts.addAll(akasyaMaxProducts);
   print('✅ AKASYA-MAX: ${akasyaMaxProducts.length} produits ajoutés');
 
@@ -106,9 +107,11 @@ String _generateDescription(String name, String catalogName) {
     return 'Mécanisme de précision conçu pour la durabilité. $baseDescription Installation simple et performance optimale.';
   } else if (name.toLowerCase().contains('ensemble')) {
     return 'Ensemble complet avec tous les accessoires nécessaires. $baseDescription Finitions soignées et matériaux durables.';
-  } else if (name.toLowerCase().contains('disque') || name.toLowerCase().contains('abrasif')) {
+  } else if (name.toLowerCase().contains('disque') ||
+      name.toLowerCase().contains('abrasif')) {
     return 'Disque abrasif professionnel haute performance. $baseDescription Résistance et efficacité garanties pour tous travaux.';
-  } else if (name.toLowerCase().contains('silicone') || name.toLowerCase().contains('colle')) {
+  } else if (name.toLowerCase().contains('silicone') ||
+      name.toLowerCase().contains('colle')) {
     return 'Produit d\'étanchéité et de fixation professionnel. $baseDescription Adhérence exceptionnelle et durabilité maximale.';
   } else {
     return '$baseDescription Conception robuste et fiable pour une utilisation intensive.';
