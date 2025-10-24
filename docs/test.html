@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test MSH_D</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Test Application MSH_D</h1>
+        <p>Cette page teste la connectivité avec le catalogue AKASYA-MAX.</p>
+        
+        <button onclick="testCatalog()">Tester le Catalogue</button>
+        <button onclick="openMainApp()">Ouvrir l'Application Principale</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function testCatalog() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>🔄 Test en cours...</p>';
+            
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/data/catalog.json');
+                const data = await response.json();
+                const productCount = data.products ? data.products.length : 0;
+                
+                if (productCount > 0) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Catalogue chargé avec succès!</p>
+                        <p><strong>Nombre de produits:</strong> ${productCount}</p>
+                        <p><strong>Dernière mise à jour:</strong> ${data.lastUpdated || 'Non spécifiée'}</p>
+                        <p><strong>Catalogues disponibles:</strong> ${Object.keys(data.catalogs || {}).join(', ')}</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<p class="error">❌ Catalogue vide ou introuvable</p>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Erreur: ${error.message}</p>`;
+            }
+        }
+
+        function openMainApp() {
+            window.location.href = './index.html';
+        }
+
+        // Test automatique au chargement
+        document.addEventListener('DOMContentLoaded', testCatalog);
+    </script>
+</body>
+</html>
