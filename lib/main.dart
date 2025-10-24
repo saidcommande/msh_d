@@ -485,9 +485,7 @@ class _CataloguePageState extends State<CataloguePage> {
   Map<String, int> _catalogCounts = {};
   final List<String> _availableCatalogs = [
     'TOUS',
-    'AKRO',
-    'ANBO',
-    'GOSTASPAIN'
+    'AKASYA-MAX'
   ];
 
   @override
@@ -622,12 +620,8 @@ class _CataloguePageState extends State<CataloguePage> {
 
   Color _getCatalogColor(String catalog) {
     switch (catalog.toUpperCase()) {
-      case 'AKRO':
-        return Colors.blue.shade600;
-      case 'ANBO':
-        return Colors.orange.shade600;
-      case 'GOSTASPAIN':
-        return Colors.green.shade600;
+      case 'AKASYA-MAX':
+        return Colors.purple.shade600;
       default:
         return Colors.grey.shade600;
     }

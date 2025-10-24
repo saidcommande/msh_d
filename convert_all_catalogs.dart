@@ -4,41 +4,17 @@ import 'dart:convert';
 void main() {
   final List<Map<String, dynamic>> allProducts = [];
 
-  // Convertir AKRO (version mise à jour)
-  print('🔵 Conversion du catalogue AKRO...');
-  final akroProducts =
-      convertCatalog('catalogue/AKRO_new.json', 'AKRO', 'akro');
-  allProducts.addAll(akroProducts);
-  print('✅ AKRO: ${akroProducts.length} produits ajoutés');
-
-  // Convertir AKRO2 (si disponible)
-  print('🟣 Conversion du catalogue AKRO2...');
-  final akro2Products = convertCatalog('data/AKRO2.json', 'AKRO2', 'akro2');
-  allProducts.addAll(akro2Products);
-  print('✅ AKRO2: ${akro2Products.length} produits ajoutés');
-
-  // Convertir ANBO (version mise à jour)
-  print('🟡 Conversion du catalogue ANBO...');
-  final anboProducts =
-      convertCatalog('catalogue/ANBO_new.json', 'ANBO', 'anbo');
-  allProducts.addAll(anboProducts);
-  print('✅ ANBO: ${anboProducts.length} produits ajoutés');
-
-  // Convertir GOSTASPAIN (version mise à jour)
-  print('🟢 Conversion du catalogue GOSTASPAIN...');
-  final gostaspainProducts = convertCatalog(
-      'catalogue/GOSTASPAIN_new.json', 'GOSTASPAIN', 'gostaspain');
-  allProducts.addAll(gostaspainProducts);
-  print('✅ GOSTASPAIN: ${gostaspainProducts.length} produits ajoutés');
+  // Convertir AKASYA-MAX (catalogue principal)
+  print('� Conversion du catalogue AKASYA-MAX...');
+  final akasyaMaxProducts = convertCatalog('catalogue/akasya-max/akasya-max.json', 'AKASYA-MAX', 'akasya-max');
+  allProducts.addAll(akasyaMaxProducts);
+  print('✅ AKASYA-MAX: ${akasyaMaxProducts.length} produits ajoutés');
 
   // Créer le catalogue unifié
   final unifiedCatalog = {
     'products': allProducts,
     'catalogs': {
-      'AKRO': akroProducts.length,
-      'AKRO2': akro2Products.length,
-      'ANBO': anboProducts.length,
-      'GOSTASPAIN': gostaspainProducts.length,
+      'AKASYA-MAX': akasyaMaxProducts.length,
       'total': allProducts.length
     },
     'lastUpdated': DateTime.now().toIso8601String()
@@ -86,7 +62,7 @@ List<Map<String, dynamic>> convertCatalog(
       }
       // Construire l'URL GitHub Pages pour l'image
       imageUrl =
-          'https://saidcommande.github.io/msh_d/assets/assets/images/$imageFolder/$fileName';
+          'https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/$imageFolder/$fileName';
     }
 
     products.add({
@@ -111,6 +87,8 @@ List<Map<String, dynamic>> convertCatalog(
 String _generateDescription(String name, String catalogName) {
   // Générer une description professionnelle basée sur le nom et le catalogue
   final Map<String, String> catalogDescriptions = {
+    'AKASYA-MAX':
+        'Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.',
     'AKRO':
         'Produit professionnel de la gamme AKRO - Qualité supérieure pour usage professionnel et domestique.',
     'ANBO':
@@ -128,6 +106,10 @@ String _generateDescription(String name, String catalogName) {
     return 'Mécanisme de précision conçu pour la durabilité. $baseDescription Installation simple et performance optimale.';
   } else if (name.toLowerCase().contains('ensemble')) {
     return 'Ensemble complet avec tous les accessoires nécessaires. $baseDescription Finitions soignées et matériaux durables.';
+  } else if (name.toLowerCase().contains('disque') || name.toLowerCase().contains('abrasif')) {
+    return 'Disque abrasif professionnel haute performance. $baseDescription Résistance et efficacité garanties pour tous travaux.';
+  } else if (name.toLowerCase().contains('silicone') || name.toLowerCase().contains('colle')) {
+    return 'Produit d\'étanchéité et de fixation professionnel. $baseDescription Adhérence exceptionnelle et durabilité maximale.';
   } else {
     return '$baseDescription Conception robuste et fiable pour une utilisation intensive.';
   }
