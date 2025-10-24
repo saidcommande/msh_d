@@ -6,15 +6,23 @@ import 'package:universal_html/html.dart' as html;
 
 class SharedCatalogService {
   static const String CATALOG_URL =
-      'https://saidcommande.github.io/msh_d/docs/data/catalog.json';
+      'https://saidcommande.github.io/msh_d/data/catalog.json';
   static const String SHARED_CATALOG_KEY = 'shared_catalog';
   static const String LAST_SYNC_KEY = 'last_catalog_sync';
 
   // Télécharger le catalogue partagé (pour l'instant, seulement local)
   static Future<bool> uploadCatalog(List<dynamic> products) async {
     try {
+      // Optimiser les produits pour le stockage - enlever les imageBytes volumineux
+      final optimizedProducts = products.map((product) {
+        final Map<String, dynamic> optimizedProduct = Map.from(product);
+        // Enlever imageBytes pour économiser l'espace de stockage
+        optimizedProduct.remove('imageBytes');
+        return optimizedProduct;
+      }).toList();
+
       final catalogData = {
-        'products': products,
+        'products': optimizedProducts,
         'lastUpdated': DateTime.now().toIso8601String()
       };
 
@@ -23,11 +31,23 @@ class SharedCatalogService {
       await prefs.setString(SHARED_CATALOG_KEY, json.encode(catalogData));
       await prefs.setString(LAST_SYNC_KEY, DateTime.now().toIso8601String());
 
-      // Si nous sommes sur le web, sauvegarder dans localStorage
+      // Si nous sommes sur le web, sauvegarder dans localStorage (optimisé)
       if (kIsWeb) {
-        html.window.localStorage[SHARED_CATALOG_KEY] = json.encode(catalogData);
-        html.window.localStorage[LAST_SYNC_KEY] =
-            DateTime.now().toIso8601String();
+        try {
+          html.window.localStorage[SHARED_CATALOG_KEY] = json.encode(catalogData);
+          html.window.localStorage[LAST_SYNC_KEY] =
+              DateTime.now().toIso8601String();
+        } catch (e) {
+          print('Erreur localStorage (quota dépassé): $e');
+          // En cas de quota dépassé, nettoyer et réessayer
+          _clearOldCacheData();
+          try {
+            html.window.localStorage[SHARED_CATALOG_KEY] = json.encode(catalogData);
+          } catch (e2) {
+            print('Échec final du stockage localStorage: $e2');
+            // Continuer sans localStorage si impossible
+          }
+        }
       }
 
       // Note: Pour une vraie synchronisation, il faudrait une API backend
@@ -115,9 +135,21 @@ class SharedCatalogService {
       await prefs.setString(LAST_SYNC_KEY, DateTime.now().toIso8601String());
 
       if (kIsWeb) {
-        html.window.localStorage[SHARED_CATALOG_KEY] = jsonData;
-        html.window.localStorage[LAST_SYNC_KEY] =
-            DateTime.now().toIso8601String();
+        try {
+          html.window.localStorage[SHARED_CATALOG_KEY] = jsonData;
+          html.window.localStorage[LAST_SYNC_KEY] =
+              DateTime.now().toIso8601String();
+        } catch (e) {
+          print('Erreur localStorage lors du cache: $e');
+          // En cas d'erreur de quota, nettoyer et réessayer
+          _clearOldCacheData();
+          try {
+            html.window.localStorage[SHARED_CATALOG_KEY] = jsonData;
+          } catch (e2) {
+            print('Échec final du cache localStorage: $e2');
+            // Continuer sans localStorage si impossible
+          }
+        }
       }
     } catch (e) {
       print('Erreur lors de la mise en cache: $e');
@@ -164,6 +196,30 @@ class SharedCatalogService {
     } catch (e) {
       print('Erreur lors du rechargement forcé: $e');
       return _loadFromCache();
+    }
+  }
+
+  // Nettoyer les anciennes données de cache pour libérer l'espace
+  static void _clearOldCacheData() {
+    if (kIsWeb) {
+      try {
+        // Nettoyer les anciennes clés qui pourraient prendre de l'espace
+        final keysToRemove = <String>[];
+        for (int i = 0; i < html.window.localStorage.length; i++) {
+          final key = html.window.localStorage.keys.elementAt(i);
+          if (key.startsWith('user_catalogue_data') || 
+              key.startsWith('cached_catalog') ||
+              key.startsWith('old_')) {
+            keysToRemove.add(key);
+          }
+        }
+        for (String key in keysToRemove) {
+          html.window.localStorage.remove(key);
+        }
+        print('Nettoyage du cache: ${keysToRemove.length} entrées supprimées');
+      } catch (e) {
+        print('Erreur lors du nettoyage du cache: $e');
+      }
     }
   }
 
