@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_html/html.dart' as html;
+import '../data/embedded_catalog.dart';
 
 class SharedCatalogService {
   static const String CATALOG_URL =
@@ -34,7 +35,8 @@ class SharedCatalogService {
       // Si nous sommes sur le web, sauvegarder dans localStorage (optimisé)
       if (kIsWeb) {
         try {
-          html.window.localStorage[SHARED_CATALOG_KEY] = json.encode(catalogData);
+          html.window.localStorage[SHARED_CATALOG_KEY] =
+              json.encode(catalogData);
           html.window.localStorage[LAST_SYNC_KEY] =
               DateTime.now().toIso8601String();
         } catch (e) {
@@ -42,7 +44,8 @@ class SharedCatalogService {
           // En cas de quota dépassé, nettoyer et réessayer
           _clearOldCacheData();
           try {
-            html.window.localStorage[SHARED_CATALOG_KEY] = json.encode(catalogData);
+            html.window.localStorage[SHARED_CATALOG_KEY] =
+                json.encode(catalogData);
           } catch (e2) {
             print('Échec final du stockage localStorage: $e2');
             // Continuer sans localStorage si impossible
@@ -63,8 +66,22 @@ class SharedCatalogService {
   // Récupérer le catalogue partagé avec meilleure gestion d'erreurs
   static Future<List<dynamic>> getCatalog() async {
     try {
-      // D'abord essayer de charger depuis l'URL distante
-      print('Tentative de chargement du catalogue depuis: $CATALOG_URL');
+      // 1. D'ABORD: Essayer le catalogue intégré (100% fiable)
+      print('🏠 Utilisation du catalogue intégré (priorité maximale)');
+      final embeddedData = json.decode(EmbeddedCatalog.catalogJson);
+      final embeddedProducts = embeddedData['products'] ?? [];
+      if (embeddedProducts.isNotEmpty) {
+        print(
+            '✅ Catalogue intégré chargé: ${embeddedProducts.length} produits');
+        return embeddedProducts;
+      }
+    } catch (e) {
+      print('⚠️ Erreur catalogue intégré: $e');
+    }
+
+    try {
+      // 2. ENSUITE: Essayer de charger depuis l'URL distante
+      print('🌐 Tentative de chargement du catalogue depuis: $CATALOG_URL');
 
       final response = await http.get(
         Uri.parse(CATALOG_URL),
@@ -77,28 +94,28 @@ class SharedCatalogService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final products = data['products'] ?? [];
-        print(
-            'Catalogue chargé depuis le serveur: ${products.length} produits');
+        print('✅ Catalogue distant chargé: ${products.length} produits');
 
         // Sauvegarder en cache local
         _cacheData(response.body);
 
         return products;
       } else {
-        print('Erreur HTTP: ${response.statusCode}');
+        print('❌ Erreur HTTP: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erreur réseau lors du chargement du catalogue: $e');
+      print('❌ Erreur réseau lors du chargement du catalogue: $e');
     }
 
-    // Si échec, essayer le cache local
+    // 3. Si échec, essayer le cache local
     final cachedProducts = await _loadFromCache();
     if (cachedProducts.isNotEmpty) {
+      print('💾 Catalogue local chargé: ${cachedProducts.length} produits');
       return cachedProducts;
     }
 
-    // En dernier recours, retourner un catalogue minimal de démonstration
-    print('Retour du catalogue de secours avec 5 produits de démonstration');
+    // 4. En dernier recours, retourner un catalogue minimal de démonstration
+    print('🆘 Retour du catalogue de secours avec 5 produits de démonstration');
     return _getEmergencyFallbackCatalog();
   }
 
@@ -108,57 +125,67 @@ class SharedCatalogService {
       {
         "id": "akasya-max_demo_1",
         "name": "BROSSE AKRO BLEU",
-        "description": "Brosse professionnelle de haute qualité. Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.",
+        "description":
+            "Brosse professionnelle de haute qualité. Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.",
         "catalog": "AKASYA-MAX",
         "price": 5.0,
         "sizes": ["9", "12", "15", "18"],
         "prices": [5.0, 6.0, 7.0, 8.0],
         "imageBytes": null,
-        "imageUrl": "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/prod_1752440345.png"
+        "imageUrl":
+            "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/prod_1752440345.png"
       },
       {
         "id": "akasya-max_demo_2",
         "name": "ROULEAU FACHADAS PRO SERIES",
-        "description": "Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.",
+        "description":
+            "Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.",
         "catalog": "AKASYA-MAX",
         "price": 35.0,
         "sizes": ["18", "22", "23"],
         "prices": [35.0, 45.0, 60.0],
         "imageBytes": null,
-        "imageUrl": "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/prod_1752441056.png"
+        "imageUrl":
+            "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/prod_1752441056.png"
       },
       {
         "id": "akasya-max_demo_3",
         "name": "PERCHE TELESCOPIQUE EN ALUMINIUM",
-        "description": "Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.",
+        "description":
+            "Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.",
         "catalog": "AKASYA-MAX",
         "price": 75.0,
         "sizes": ["2M", "3M", "4M"],
         "prices": [75.0, 95.0, 120.0],
         "imageBytes": null,
-        "imageUrl": "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/prod_1752442632.png"
+        "imageUrl":
+            "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/prod_1752442632.png"
       },
       {
         "id": "akasya-max_demo_4",
         "name": "SILICONE GUN",
-        "description": "Produit d'étanchéité et de fixation professionnel. Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.",
+        "description":
+            "Produit d'étanchéité et de fixation professionnel. Produit professionnel de la gamme AKASYA-MAX - Qualité premium pour usage professionnel et domestique.",
         "catalog": "AKASYA-MAX",
         "price": 64.8,
         "sizes": ["Taille unique"],
         "prices": [64.8],
         "imageBytes": null,
-        "imageUrl": "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/e7b3a6fc-8638-40c4-bf98-671500d01d466139302911328288278.jpg"
+        "imageUrl":
+            "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/e7b3a6fc-8638-40c4-bf98-671500d01d466139302911328288278.jpg"
       },
       {
         "id": "akasya-max_demo_5",
         "name": "CATALOGUE COMPLET EN CHARGEMENT",
-        "description": "Le catalogue complet AKASYA-MAX avec 113 produits se charge en arrière-plan. Veuillez utiliser le bouton 'Actualiser' pour charger la version complète.",
+        "description":
+            "Le catalogue complet AKASYA-MAX avec 113 produits se charge en arrière-plan. Veuillez utiliser le bouton 'Actualiser' pour charger la version complète.",
         "catalog": "AKASYA-MAX",
         "price": 0.0,
         "sizes": ["Info"],
         "prices": [0.0],
         "imageBytes": null,
-        "imageUrl": "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/prod_1752440345.png"
+        "imageUrl":
+            "https://raw.githubusercontent.com/saidcommande/msh_d/main/docs/assets/assets/images/akasya-max/prod_1752440345.png"
       }
     ];
   }
@@ -275,7 +302,7 @@ class SharedCatalogService {
         final keysToRemove = <String>[];
         for (int i = 0; i < html.window.localStorage.length; i++) {
           final key = html.window.localStorage.keys.elementAt(i);
-          if (key.startsWith('user_catalogue_data') || 
+          if (key.startsWith('user_catalogue_data') ||
               key.startsWith('cached_catalog') ||
               key.startsWith('old_')) {
             keysToRemove.add(key);
